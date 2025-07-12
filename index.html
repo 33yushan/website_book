@@ -119,7 +119,7 @@
 
     function renderPage(page, canvas, scale = 1.5) {
       if (!canvas) return Promise.reject('找不到對應的 canvas 元素');
-      ResizeflipCanvasSize();
+      resizeFlipbook();
       updateProgressBar();
       let viewport = page.getViewport({scale: scale});
       let ctx = canvas.getContext('2d');
@@ -143,7 +143,7 @@
 	return [width, height];
 	}
     function renderBatch(startPage, endPage) {
-      ResizeflipCanvasSize();
+      resizeFlipbook();
       let chain = Promise.resolve();
       for (let i = startPage; i <= endPage; i++) {
         chain = chain.then(() => {
@@ -203,7 +203,7 @@
             autoCenter: true
           });
           bindFlipbookEvents();
-          ResizeflipCanvasSize();
+          resizeFlipbook();
           renderPagesInBatches();
         });
       }).catch(err => {
@@ -218,7 +218,7 @@
         updateProgressBar();
         if (page === 1) { $('#flipbook').addClass('first-page'); }
         else { $('#flipbook').removeClass('first-page'); }
-        ResizeflipCanvasSize();
+        resizeFlipbook();
       });
     }
     function updateProgressBar() {
