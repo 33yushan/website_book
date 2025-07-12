@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>我的繪本翻書</title>
+  <title>呷對呷欸巧</title>
   <style>
     body { margin: 0; background-color: #363636; font-family: Arial, sans-serif; color: white; }
     #app-content { display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; padding: 20px 0; }
@@ -70,6 +70,38 @@
     #loading-screen { display: flex; align-items: center; justify-content: center; position: fixed; width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); z-index: 1000;}
     .spinner { width: 80px; height: 80px; border: 5px solid rgba(0,0,0,0.2); border-top: 5px solid #000; border-radius: 50%; animation: spin 1s linear infinite;}
     @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+	#rotate-device-mask {
+	  position: fixed;
+	  z-index: 9999;
+	  left: 0; top: 0; width: 100vw; height: 100vh;
+	  background: rgba(40,40,40,0.96);
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  flex-direction: column;
+	  transition: opacity .25s;
+	}
+	.rotate-device-msg {
+	  color: #fff;
+	  font-size: 2em;
+	  text-align: center;
+	  padding: 36px 24px;
+	  border-radius: 30px;
+	  background: rgba(20,20,20,0.96);
+	  box-shadow: 0 0 30px #0007;
+	}
+	.rotate-device-msg i {
+	  font-size: 2.5em;
+	  margin-bottom: 16px;
+	  animation: rotateHint 1.5s infinite linear;
+	  display:block;
+	}
+	@keyframes rotateHint {
+	  0% { transform: rotate(0);}
+	  60% { transform: rotate(120deg);}
+	  80% { transform: rotate(100deg);}
+	  100% { transform: rotate(0);}
+	}
   </style>
   <!-- jQuery CDN -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -84,8 +116,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 </head>
 <body>
-  <div id="loading-screen"><div class="spinner"></div></div>
-  <div id="app-content" style="display: none;">
+	<div id="rotate-device-mask" style="display:none;">
+	  <div class="rotate-device-msg">
+		<i class="fas fa-sync-alt"></i>
+		<p>請將手機橫過來<br>以獲得更好的閱讀體驗</p>
+	  </div>
+	</div>
+	<div id="loading-screen"><div class="spinner"></div></div>
+	<div id="app-content" style="display: none;">
     <div class="progress-bar">
       <progress id="reading-progress" value="0" max="100"></progress>
       <p id="page-number-display">
@@ -272,6 +310,26 @@
       });
     });
     window.addEventListener('load', initializeApp);
-  </script>
+	function checkIfPortrait() {
+	  // 只在行動裝置啟用，桌面不理會
+	  if(window.innerWidth < 900 && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+		let isPortrait = window.matchMedia("(orientation: portrait)").matches;
+		if(isPortrait) {
+		  document.getElementById('rotate-device-mask').style.display = 'flex';
+		  document.body.style.overflow = 'hidden'; // 禁止背景滾動
+		} else {
+		  document.getElementById('rotate-device-mask').style.display = 'none';
+		  document.body.style.overflow = '';
+		}
+	  } else {
+		document.getElementById('rotate-device-mask').style.display = 'none';
+		document.body.style.overflow = '';
+	  }
+	}
+	window.addEventListener('orientationchange', checkIfPortrait);
+	window.addEventListener('resize', checkIfPortrait);
+	window.addEventListener('load', checkIfPortrait);
+	$(document).ready(checkIfPortrait);
+	</script>
 </body>
 </html>
