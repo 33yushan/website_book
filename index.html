@@ -7,37 +7,34 @@
   <style>
     body { margin: 0; background-color: #363636; font-family: Arial, sans-serif; color: white; }
     #app-content { display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; padding: 20px 0; }
-    .progress-bar { width: 80%; max-width: 1200px; margin: 0 auto 10px; text-align: center; position: relative; }
+    .progress-bar { width: 80%; max-width: 1200px; margin: 0 auto 10px; text-align: center; }
     .progress-bar progress { width: 100%; height: 10px; }
     #page-number-display { font-size: 18px; margin-top: 5px; color: #ffffff; }
     #flipbook-container { position: relative; display: block; margin: 0 auto; }
-    #flipbook { background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .arrow-button { position: absolute; top: 50%; transform: translateY(-50%); padding: 10px; font-size: 24px; background-color: #3a7ce6; color: white; border: none; border-radius: 50%; cursor: pointer; transition: background-color 0.3s ease; z-index: 1000; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; }
+    #flipbook { background-color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+    .arrow-button { position: absolute; top: 50%; transform: translateY(-50%); padding: 10px; font-size: 24px; background-color: #3a7ce6; color: white; border: none; border-radius: 50%; cursor: pointer; transition: background-color 0.3s; z-index: 1000; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center;}
     .arrow-button:hover { background-color: #2958a3; }
     #pdf-prev { left: 10px; }
     #pdf-next { right: 10px; }
-    @media (max-width: 768px) {
-      .arrow-button { width: 40px; height: 40px; padding: 5px; font-size: 18px; }
-    }
+    @media (max-width: 768px) { .arrow-button { width: 40px; height: 40px; font-size: 18px; padding: 5px; } }
     .page { position: relative; z-index: 1; }
     #flipbook.first-page .page-left { display: none !important; }
     #flipbook.first-page .page-right { margin-left: 0 !important; display: block !important; }
-    #loading-screen { display: flex; align-items: center; justify-content: center; position: fixed; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); z-index: 1000; }
-    .spinner { width: 80px; height: 80px; border: 5px solid rgba(0, 0, 0, 0.2); border-top: 5px solid #000; border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    #loading-screen { display: flex; align-items: center; justify-content: center; position: fixed; width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); z-index: 1000;}
+    .spinner { width: 80px; height: 80px; border: 5px solid rgba(0,0,0,0.2); border-top: 5px solid #000; border-radius: 50%; animation: spin 1s linear infinite;}
+    @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
   </style>
   <!-- jQuery CDN -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <!-- turn.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/turn.js@4/turn.min.js"></script>
+  <!-- turn.js 3.x 版（最穩定） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/3/turn.min.js"></script>
   <!-- pdf.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    // 設定 PDF.js worker CDN 路徑
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
-  <!-- Font Awesome (用來顯示箭頭 icon) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <!-- Font Awesome for arrows -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
 </head>
 <body>
   <div id="loading-screen"><div class="spinner"></div></div>
@@ -50,17 +47,12 @@
     </div>
     <div id="flipbook-container">
       <div id="flipbook"></div>
-      <button id="pdf-prev" class="arrow-button">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <button id="pdf-next" class="arrow-button">
-        <i class="fas fa-arrow-right"></i>
-      </button>
+      <button id="pdf-prev" class="arrow-button"><i class="fas fa-arrow-left"></i></button>
+      <button id="pdf-next" class="arrow-button"><i class="fas fa-arrow-right"></i></button>
     </div>
   </div>
   <script>
-    // ========== 常數 & 全域變數 ==========
-    const BOOK_FILENAME = 'book.pdf'; // 你的PDF檔，放在 /pdfs/book.pdf
+    const BOOK_FILENAME = 'book.pdf'; // 請將你的 PDF 檔放在 /pdfs/book.pdf
     let __PDF_DOC, __CURRENT_PAGE = 1, __TOTAL_PAGES = 0, __PAGE_WIDTH = 0, __PAGE_HEIGHT = 0;
     let __BATCH_SIZE = 2, __CURRENT_BATCH = 1;
 
@@ -212,7 +204,7 @@
       return new Promise(resolve => {
         setTimeout(() => {
           resolve();
-        }, 1000); // 可自行調整 loading 時間
+        }, 1000);
       });
     }
     function initializeApp() {
