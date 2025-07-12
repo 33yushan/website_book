@@ -271,6 +271,19 @@
       });
     });
     window.addEventListener('load', initializeApp);
+	$('#flipbook').turn({
+	  width: __PAGE_WIDTH * 2,
+		  height: __PAGE_HEIGHT,
+		  autoCenter: true,
+		  // 新增這行讓桌機可滑鼠拖曳
+		  gradients: true,
+		  acceleration: true,
+		  when: {
+			turning: function(e, page, view) {
+			  // 預設即可，不用特別改
+			}
+		  }
+	});
   </script>
 </body>
 </html>
