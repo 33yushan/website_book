@@ -116,40 +116,72 @@
     </div>
   </div>
 <script>
-	const BOOK_FILENAME = 'book.pdf'; // PDF 路徑
+	const BOOK_FILENAME = 'book.pdf'; // 請將你的 PDF 檔放在 /pdfs/book.pdf
 	let __PDF_DOC, __CURRENT_PAGE = 1, __TOTAL_PAGES = 0, __PAGE_WIDTH = 0, __PAGE_HEIGHT = 0;
 
-	// 手機是否單頁模式
 	function isMobile() {
-	  return window.innerWidth < 700;
+	  return window.innerWidth < 700; // 手機都顯示單頁
 	}
 
+	// 取得繪本區域寬高（根據螢幕自適應）
 	function getBookSize() {
 	  const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
 	  const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 100;
+	  // 預設橫式繪本: 寬>高，最多佔滿螢幕寬98%高90%
 	  let width = vw * 0.98, height = vh * 0.90;
 	  if (__PAGE_WIDTH && __PAGE_HEIGHT) {
-		// 單頁 or 雙頁比例
-		let pdfRatio = isMobile() ? (__PAGE_WIDTH / __PAGE_HEIGHT) : (__PAGE_WIDTH * 2 / __PAGE_HEIGHT);
-		let screenRatio = width / height;
+		let pdfRatio = __PAGE_WIDTH / __PAGE_HEIGHT;
+		if (!isMobile()) pdfRatio = pdfRatio * 2; // 雙頁
+		const screenRatio = width / height;
 		if (screenRatio > pdfRatio) width = height * pdfRatio;
 		else height = width / pdfRatio;
 	  }
 	  return [width, height];
 	}
 
-	// 這裡 scale 決定 canvas 解析度（渲染原生像素）
-	function renderPage(page, canvas, scale = 1.5) {
-	  if (!canvas) return Promise.reject('找不到 canvas 元素');
-	  // 設定畫布像素，canvas寬高要與PDF單頁對應
-	  canvas.width = __PAGE_WIDTH;
-	  canvas.height = __PAGE_HEIGHT;
-	  let viewport = page.getViewport({ scale: scale });
-	  let ctx = canvas.getContext('2d');
-	  // 調整scale 讓PDF頁面內容解析度更高(1~2通常都很夠)
-	  return page.render({ canvasContext: ctx, viewport: page.getViewport({scale: canvas.width / viewport.width}) }).promise;
+	// canvas 寬高與顯示自動對齊
+	function resizeFlipbook() {
+	  if (!__PAGE_WIDTH || !__PAGE_HEIGHT) return;
+	  let [bookW, bookH] = getBookSize();
+	  $('#flipbook').turn('size', bookW, bookH);
+	  $('#flipbook').turn('display', isMobile() ? 'single' : 'double');
+	  $('#flipbook .page canvas').each(function(){
+		// canvas外觀填滿容器
+		let w = isMobile() ? bookW : (bookW / 2);
+		$(this).css({
+		  width: w + 'px',
+		  height: bookH + 'px'
+		});
+	  });
+	  adjustArrowButtons();
 	}
 
+	// 調整左右箭頭位置
+	function adjustArrowButtons() {
+	  $('#pdf-prev').css({
+		left: '0',
+		top: '50%',
+		transform: 'translateY(-50%)'
+	  });
+	  $('#pdf-next').css({
+		right: '0',
+		top: '50%',
+		transform: 'translateY(-50%)'
+	  });
+	}
+
+	// PDF單頁渲染
+	function renderPage(page, canvas, scale = 1.5) {
+	  if (!canvas) return Promise.reject('找不到 canvas 元素');
+	  // canvas 寬高用原始PDF大小，畫質佳，外觀用css蓋掉
+	  canvas.width = __PAGE_WIDTH;
+	  canvas.height = __PAGE_HEIGHT;
+	  let ctx = canvas.getContext('2d');
+	  let viewport = page.getViewport({ scale: scale });
+	  return page.render({ canvasContext: ctx, viewport: viewport }).promise;
+	}
+
+	// 所有頁面全部渲染
 	function renderAllPages() {
 	  let promises = [];
 	  for (let i = 1; i <= __TOTAL_PAGES; i++) {
@@ -161,6 +193,7 @@
 	  return Promise.all(promises);
 	}
 
+	// 載入PDF主流程
 	function showPDF() {
 	  let url = `./pdfs/${BOOK_FILENAME}`;
 	  pdfjsLib.getDocument(url).promise.then(pdfDoc => {
@@ -175,8 +208,8 @@
 		  for (let i = 1; i <= __TOTAL_PAGES; i++) {
 			$('#flipbook').append(
 			  `<div class="page" data-page="${i}">
-				<canvas id="canvas${i}"></canvas>
-			  </div>`
+				  <canvas id="canvas${i}"></canvas>
+			   </div>`
 			);
 		  }
 		  let [bookW, bookH] = getBookSize();
@@ -195,6 +228,7 @@
 	  });
 	}
 
+	// 綁定翻頁事件
 	function bindFlipbookEvents() {
 	  $('#flipbook').bind('turning', (event, page, view) => {
 		__CURRENT_PAGE = page;
@@ -202,8 +236,10 @@
 		updateProgressBar();
 		if (page === 1) { $('#flipbook').addClass('first-page'); }
 		else { $('#flipbook').removeClass('first-page'); }
+		resizeFlipbook();
 	  });
 	}
+
 	function updateProgressBar() {
 	  let current = __CURRENT_PAGE;
 	  let val = (current / __TOTAL_PAGES) * 100;
@@ -211,32 +247,7 @@
 	  document.getElementById('pdf-current-page').textContent = __CURRENT_PAGE;
 	}
 
-	function resizeFlipbook() {
-	  if (!__PAGE_WIDTH || !__PAGE_HEIGHT) return;
-	  let [bookW, bookH] = getBookSize();
-	  $('#flipbook').turn('size', bookW, bookH);
-	  $('#flipbook').turn('display', isMobile() ? 'single' : 'double');
-	  // 每頁 canvas 外觀等比縮放
-	  $('#flipbook .page canvas').each(function(){
-		$(this).css({
-		  width: isMobile() ? bookW + 'px' : (bookW / 2) + 'px',
-		  height: bookH + 'px'
-		});
-	  });
-	  adjustArrowButtons();
-	}
-	function adjustArrowButtons() {
-	  $('#pdf-prev').css({
-		left: '0',
-		top: '50%',
-		transform: 'translateY(-50%)'
-	  });
-	  $('#pdf-next').css({
-		right: '0',
-		top: '50%',
-		transform: 'translateY(-50%)'
-	  });
-	}
+	// 左右翻頁按鈕
 	$('#pdf-prev').on('click', () => { $('#flipbook').turn('previous'); });
 	$('#pdf-next').on('click', () => { $('#flipbook').turn('next'); });
 
@@ -258,6 +269,7 @@
 		showPDF();
 	  });
 	}
+
 	$(document).ready(() => {
 	  $(window).resize(() => {
 		resizeFlipbook();
