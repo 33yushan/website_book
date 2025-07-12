@@ -29,7 +29,6 @@
       border: none;
       box-shadow: none;
       overflow: visible;
-      /* 讓畫面填滿容器 */
     }
     .arrow-button {
       position: absolute;
@@ -91,8 +90,8 @@
   </style>
   <!-- jQuery CDN -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <!-- turn.js 4.1.0 (官方最新版) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
+  <!-- turn.js 4.0.1（穩定版） -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.0.1/turn.min.js"></script>
   <!-- pdf.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -120,16 +119,12 @@
     const BOOK_FILENAME = 'book.pdf'; // 請將你的 PDF 檔放在 /pdfs/book.pdf
     let __PDF_DOC, __CURRENT_PAGE = 1, __TOTAL_PAGES = 0, __PAGE_WIDTH = 0, __PAGE_HEIGHT = 0;
 
-    // ========== 讓翻頁器根據畫面自動縮放 ==========
     function getBookSize() {
-      // 根據螢幕自動調整最大寬高
       const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
       const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 100;
-      // 預設橫式繪本: 寬>高，最多佔滿螢幕寬80%高85%
       let width = vw * 0.98, height = vh * 0.90;
-      // 維持PDF原本比例（寬高比例）
       if (__PAGE_WIDTH && __PAGE_HEIGHT) {
-        const pdfRatio = __PAGE_WIDTH / __PAGE_HEIGHT * 2; // 雙頁
+        const pdfRatio = __PAGE_WIDTH / __PAGE_HEIGHT * 2;
         const screenRatio = width / height;
         if (screenRatio > pdfRatio) width = height * pdfRatio;
         else height = width / pdfRatio;
@@ -150,7 +145,6 @@
       for (let i = 1; i <= __TOTAL_PAGES; i++) {
         promises.push(__PDF_DOC.getPage(i).then(page => {
           let canvas = document.getElementById('canvas' + i);
-          // scale=1，PDF 解析度通常夠，若要更清晰可調高
           return renderPage(page, canvas, 1.5);
         }));
       }
@@ -166,7 +160,6 @@
           let vp = page.getViewport({scale: 1});
           __PAGE_WIDTH = vp.width;
           __PAGE_HEIGHT = vp.height;
-          // 先清空
           $('#flipbook').empty();
           for (let i = 1; i <= __TOTAL_PAGES; i++) {
             $('#flipbook').append(
@@ -182,7 +175,6 @@
             autoCenter: true
           });
           bindFlipbookEvents();
-          // 填滿內容
           renderAllPages().then(resizeFlipbook);
         });
       }).catch(err => {
@@ -219,10 +211,6 @@
       adjustArrowButtons();
     }
     function adjustArrowButtons() {
-      let flipEl = $('#flipbook');
-      let fbW = flipEl.width();
-      let fbH = flipEl.height();
-      // 箭頭永遠在最左右，置中
       $('#pdf-prev').css({
         left: '0',
         top: '50%',
