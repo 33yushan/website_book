@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>呷對呷欸巧</title>
+  <title>我的繪本翻書</title>
   <style>
     body { margin: 0; background-color: #363636; font-family: Arial, sans-serif; color: white; }
     #app-content { display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; padding: 20px 0; }
@@ -45,11 +45,26 @@
 	  right: 0;  /* 一定貼齊右邊 */
 	}
     @media (max-width: 900px) {
-	  .arrow-button {
-		width: 38px;
-		height: 38px;
-		font-size: 18px;
-		padding: 3px;
+	  #flipbook-container {
+		width: 100vw;
+		height: auto;
+		min-height: 220px;
+		padding: 0 !important;
+	  }
+	  #flipbook {
+		width: 98vw !important;
+		height: auto !important;
+		min-height: 220px;
+		max-width: 100vw;
+		max-height: 70vh;
+		margin: 0 auto !important;
+		box-sizing: border-box;
+	  }
+	  .page, .page canvas {
+		width: 100% !important;
+		height: auto !important;
+		max-width: 100vw !important;
+		max-height: 70vh !important;
 	  }
 	}
 	@media (max-width: 600px) {
@@ -198,28 +213,24 @@
       document.getElementById('reading-progress').value = val;
       document.getElementById('pdf-current-page').textContent = __CURRENT_PAGE;
     }
-    function ResizeflipCanvasSize() {
-      if (!__PAGE_WIDTH || !__PAGE_HEIGHT) return;
-      let ratio = window.innerWidth / window.innerHeight;
-      let scaleFactor;
-      if (ratio < 1) {
-        scaleFactor = ($(window).width() * 0.95) / __PAGE_WIDTH;
-        $('#flipbook').turn('display', 'single');
-        $('#flipbook').turn('size', __PAGE_WIDTH * scaleFactor, __PAGE_HEIGHT * scaleFactor);
-      } else {
-        scaleFactor = ($(window).width() * 0.95) / (__PAGE_WIDTH * 2);
-        $('#flipbook').turn('display', 'double');
-        $('#flipbook').turn('size', __PAGE_WIDTH * 2 * scaleFactor, __PAGE_HEIGHT * scaleFactor);
-      }
-      $('#flipbook canvas').each(function() {
-        $(this).css({
-          width: __PAGE_WIDTH * scaleFactor + 'px',
-          height: __PAGE_HEIGHT * scaleFactor + 'px'
-        });
-      });
-      $('#flipbook').css('margin', '20px auto');
-      adjustArrowButtons();
-    }
+    function resizeFlipbook() {
+	  if (!__PAGE_WIDTH || !__PAGE_HEIGHT) return;
+	  let [bookW, bookH] = getBookSize();
+	  // 如果螢幕窄，強制 turn.js 為單頁
+	  if (window.innerWidth < 900) {
+		$('#flipbook').turn('display', 'single');
+	  } else {
+		$('#flipbook').turn('display', 'double');
+	  }
+	  $('#flipbook').turn('size', bookW, bookH);
+	  $('#flipbook .page canvas').each(function(){
+		$(this).css({
+		  width: '100%',
+		  height: '100%'
+		});
+	  });
+	  adjustArrowButtons();
+	}
     function adjustArrowButtons() {
       let flipEl = $('#flipbook');
       let offset = flipEl.offset();
