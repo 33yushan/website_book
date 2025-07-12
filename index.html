@@ -63,17 +63,23 @@
 		padding: 2px;
 	  }
 	}
-    .page {
-	  pointer-events: auto;
-	  padding-left: 8px;
-	  padding-right: 8px;
-	  box-sizing: border-box;
+	.page {
+	  margin: 0 !important;
+	  padding: 0 !important;
+	  background: none !important;
+	  border: none !important;
+	  box-shadow: none !important;
 	}
 	.page canvas {
-	  pointer-events: none;
-	  width: 100%;
-	  height: 100%;
+	  display: block;
+	  width: 100% !important;
+	  height: 100% !important;
+	  margin: 0 !important;
+	  padding: 0 !important;
+	  background: none !important;
+	  border: none !important;
 	}
+
     #flipbook.first-page .page-left { display: none !important; }
     #flipbook.first-page .page-right { margin-left: 0 !important; display: block !important; }
     #loading-screen { display: flex; align-items: center; justify-content: center; position: fixed; width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); z-index: 1000;}
