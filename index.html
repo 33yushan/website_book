@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>呷對呷欸巧</title>
+  <title>我的繪本翻書</title>
   <style>
     body { margin: 0; background-color: #363636; font-family: Arial, sans-serif; color: white; }
     #app-content { display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; padding: 20px 0; }
@@ -127,6 +127,21 @@
       canvas.height = viewport.height;
       return page.render({ canvasContext: ctx, viewport: viewport }).promise;
     }
+	function getBookSize() {
+	// 根據螢幕自動調整最大寬高
+	const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+	const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 100;
+	// 預設橫式繪本: 寬>高，最多佔滿螢幕寬98%高90%
+	let width = vw * 0.98, height = vh * 0.90;
+	// 維持PDF原本比例（寬高比例）
+	if (typeof __PAGE_WIDTH !== 'undefined' && typeof __PAGE_HEIGHT !== 'undefined' && __PAGE_WIDTH && __PAGE_HEIGHT) {
+		const pdfRatio = __PAGE_WIDTH / __PAGE_HEIGHT * 2; // 雙頁
+		const screenRatio = width / height;
+		if (screenRatio > pdfRatio) width = height * pdfRatio;
+		else height = width / pdfRatio;
+	  }
+	return [width, height];
+	}
     function renderBatch(startPage, endPage) {
       ResizeflipCanvasSize();
       let chain = Promise.resolve();
