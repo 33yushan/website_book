@@ -63,7 +63,14 @@
 		padding: 2px;
 	  }
 	}
-    .page { position: relative; z-index: 1; }
+    .page {
+	  position: relative;
+	  z-index: 1;
+	  pointer-events: auto;
+	}
+	.page canvas {
+	  pointer-events: none;
+	}
     #flipbook.first-page .page-left { display: none !important; }
     #flipbook.first-page .page-right { margin-left: 0 !important; display: block !important; }
     #loading-screen { display: flex; align-items: center; justify-content: center; position: fixed; width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); z-index: 1000;}
@@ -271,19 +278,6 @@
       });
     });
     window.addEventListener('load', initializeApp);
-	$('#flipbook').turn({
-	  width: __PAGE_WIDTH * 2,
-		  height: __PAGE_HEIGHT,
-		  autoCenter: true,
-		  // 新增這行讓桌機可滑鼠拖曳
-		  gradients: true,
-		  acceleration: true,
-		  when: {
-			turning: function(e, page, view) {
-			  // 預設即可，不用特別改
-			}
-		  }
-	});
   </script>
 </body>
 </html>
