@@ -135,162 +135,174 @@
     </div>
   </div>
 <script>
-  const BOOK_FILENAME = 'book.pdf'; // PDF 檔路徑
-  let __PDF_DOC, __CURRENT_PAGE = 1, __TOTAL_PAGES = 0, __PAGE_WIDTH = 0, __PAGE_HEIGHT = 0;
+	const BOOK_FILENAME = 'book.pdf';
+	let __PDF_DOC, __CURRENT_PAGE = 1, __TOTAL_PAGES = 0, __PAGE_WIDTH = 0, __PAGE_HEIGHT = 0;
 
-  function isMobile() {
-    return window.innerWidth < 700;
-  }
+	function isMobile() {
+	  return window.innerWidth < 700;
+	}
 
-  function getBookSize() {
-    const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-    const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 100;
-    let width = vw * 0.98, height = vh * 0.90;
-    if (__PAGE_WIDTH && __PAGE_HEIGHT) {
-      let pdfRatio = __PAGE_WIDTH / __PAGE_HEIGHT;
-      if (!isMobile()) pdfRatio = pdfRatio * 2; // 雙頁
-      const screenRatio = width / height;
-      if (screenRatio > pdfRatio) width = height * pdfRatio;
-      else height = width / pdfRatio;
-    }
-    return [width, height];
-  }
+	function getBookSize() {
+	  const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+	  const vh = Math.max(document.documentElement.clientHeight, window.innerHeight || 0) - 100;
+	  let width = vw * 0.98, height = vh * 0.90;
+	  if (__PAGE_WIDTH && __PAGE_HEIGHT) {
+		let pdfRatio = __PAGE_WIDTH / __PAGE_HEIGHT;
+		if (!isMobile()) pdfRatio = pdfRatio * 2;
+		const screenRatio = width / height;
+		if (screenRatio > pdfRatio) width = height * pdfRatio;
+		else height = width / pdfRatio;
+	  }
+	  return [width, height];
+	}
 
-  function resizeFlipbook() {
-    if (!__PAGE_WIDTH || !__PAGE_HEIGHT) return;
-    let [bookW, bookH] = getBookSize();
-    $('#flipbook').turn('size', bookW, bookH);
-    $('#flipbook').turn('display', isMobile() ? 'single' : 'double');
-    let ar = (__PAGE_WIDTH / __PAGE_HEIGHT);
-    $('#flipbook .page canvas').each(function(){
-      let w = isMobile() ? bookW : (bookW / 2);
-      $(this).css({
-        width: w + 'px',
-        height: 'auto',
-        'aspect-ratio': ar
-      });
-    });
-    adjustArrowButtons();
-  }
+	function resizeFlipbook() {
+	  if (!__PAGE_WIDTH || !__PAGE_HEIGHT) return;
+	  let [bookW, bookH] = getBookSize();
+	  $('#flipbook').turn('size', bookW, bookH);
+	  $('#flipbook').turn('display', isMobile() ? 'single' : 'double');
+	  let ar = (__PAGE_WIDTH / __PAGE_HEIGHT);
+	  $('#flipbook .page canvas').each(function(){
+		let w = isMobile() ? bookW : (bookW / 2);
+		// 強制內容寬高比與最大高度
+		$(this).css({
+		  width: w + 'px',
+		  height: (w/ar) + 'px',        // 讓canvas實際不溢出
+		  maxWidth: '100vw',
+		  maxHeight: bookH + 'px',
+		  aspectRatio: ar
+		});
+	  });
+	  adjustArrowButtons();
+	}
 
-  function adjustArrowButtons() {
-    $('#pdf-prev').css({
-      left: '0',
-      top: '50%',
-      transform: 'translateY(-50%)'
-    });
-    $('#pdf-next').css({
-      right: '0',
-      top: '50%',
-      transform: 'translateY(-50%)'
-    });
-  }
+	function adjustArrowButtons() {
+	  $('#pdf-prev').css({
+		left: '0',
+		top: '50%',
+		transform: 'translateY(-50%)'
+	  });
+	  $('#pdf-next').css({
+		right: '0',
+		top: '50%',
+		transform: 'translateY(-50%)'
+	  });
+	}
 
-  function renderPage(page, canvas, scale = 1.5) {
-    if (!canvas) return Promise.reject('找不到 canvas 元素');
-    canvas.width = __PAGE_WIDTH;
-    canvas.height = __PAGE_HEIGHT;
-    let ctx = canvas.getContext('2d');
-    let viewport = page.getViewport({ scale: scale });
-    return page.render({ canvasContext: ctx, viewport: viewport }).promise;
-  }
+	function renderPage(page, canvas, scale = 1.5) {
+	  if (!canvas) return Promise.reject('找不到 canvas 元素');
+	  canvas.width = __PAGE_WIDTH;
+	  canvas.height = __PAGE_HEIGHT;
+	  let ctx = canvas.getContext('2d');
+	  let viewport = page.getViewport({ scale: scale });
+	  return page.render({ canvasContext: ctx, viewport: viewport }).promise;
+	}
 
-  function renderAllPages() {
-    let promises = [];
-    for (let i = 1; i <= __TOTAL_PAGES; i++) {
-      promises.push(__PDF_DOC.getPage(i).then(page => {
-        let canvas = document.getElementById('canvas' + i);
-        return renderPage(page, canvas, 1.5);
-      }));
-    }
-    return Promise.all(promises);
-  }
+	function renderAllPages() {
+	  let promises = [];
+	  for (let i = 1; i <= __TOTAL_PAGES; i++) {
+		promises.push(__PDF_DOC.getPage(i).then(page => {
+		  let canvas = document.getElementById('canvas' + i);
+		  return renderPage(page, canvas, 1.5);
+		}));
+	  }
+	  return Promise.all(promises);
+	}
 
-  function showPDF() {
-    let url = `./pdfs/${BOOK_FILENAME}`;
-    pdfjsLib.getDocument(url).promise.then(pdfDoc => {
-      __PDF_DOC = pdfDoc;
-      __TOTAL_PAGES = pdfDoc.numPages;
-      document.getElementById('pdf-total-pages').textContent = __TOTAL_PAGES;
-      return pdfDoc.getPage(1).then(page => {
-        let vp = page.getViewport({scale: 1});
-        __PAGE_WIDTH = vp.width;
-        __PAGE_HEIGHT = vp.height;
-        $('#flipbook').empty();
-        for (let i = 1; i <= __TOTAL_PAGES; i++) {
-          $('#flipbook').append(
-            `<div class="page" data-page="${i}">
-                <canvas id="canvas${i}"></canvas>
-             </div>`
-          );
-        }
-        let [bookW, bookH] = getBookSize();
-        $('#flipbook').turn({
-          width: bookW,
-          height: bookH,
-          autoCenter: true,
-          display: isMobile() ? 'single' : 'double'
-        });
-        bindFlipbookEvents();
-        renderAllPages().then(resizeFlipbook);
-      });
-    }).catch(err => {
-      console.error('載入 PDF 時出錯：', err);
-      alert('PDF 載入失敗：' + err.message);
-    });
-  }
+	function showPDF() {
+	  let url = `./pdfs/${BOOK_FILENAME}`;
+	  pdfjsLib.getDocument(url).promise.then(pdfDoc => {
+		__PDF_DOC = pdfDoc;
+		__TOTAL_PAGES = pdfDoc.numPages;
+		document.getElementById('pdf-total-pages').textContent = __TOTAL_PAGES;
+		return pdfDoc.getPage(1).then(page => {
+		  let vp = page.getViewport({scale: 1});
+		  __PAGE_WIDTH = vp.width;
+		  __PAGE_HEIGHT = vp.height;
+		  $('#flipbook').empty();
+		  for (let i = 1; i <= __TOTAL_PAGES; i++) {
+			$('#flipbook').append(
+			  `<div class="page" data-page="${i}">
+				  <canvas id="canvas${i}"></canvas>
+			   </div>`
+			);
+		  }
+		  let [bookW, bookH] = getBookSize();
+		  $('#flipbook').turn({
+			width: bookW,
+			height: bookH,
+			autoCenter: true,
+			display: isMobile() ? 'single' : 'double'
+		  });
 
-  function bindFlipbookEvents() {
-    $('#flipbook').bind('turning', (event, page, view) => {
-      __CURRENT_PAGE = page;
-      document.getElementById('pdf-current-page').textContent = page;
-      updateProgressBar();
-      if (page === 1) { $('#flipbook').addClass('first-page'); }
-      else { $('#flipbook').removeClass('first-page'); }
-      resizeFlipbook();
-    });
-  }
+		  // ⬇️ 強制回到第一頁（避免 turn.js 預設到第2頁的問題）
+		  setTimeout(() => {
+			$('#flipbook').turn('page', 1);
+			__CURRENT_PAGE = 1;
+			updateProgressBar();
+		  }, 200);
 
-  function updateProgressBar() {
-    let current = __CURRENT_PAGE;
-    let val = (current / __TOTAL_PAGES) * 100;
-    document.getElementById('reading-progress').value = val;
-    document.getElementById('pdf-current-page').textContent = __CURRENT_PAGE;
-  }
+		  bindFlipbookEvents();
+		  renderAllPages().then(resizeFlipbook);
+		});
+	  }).catch(err => {
+		console.error('載入 PDF 時出錯：', err);
+		alert('PDF 載入失敗：' + err.message);
+	  });
+	}
 
-  $('#pdf-prev').on('click', () => { $('#flipbook').turn('previous'); });
-  $('#pdf-next').on('click', () => { $('#flipbook').turn('next'); });
+	function bindFlipbookEvents() {
+	  $('#flipbook').bind('turning', (event, page, view) => {
+		__CURRENT_PAGE = page;
+		document.getElementById('pdf-current-page').textContent = page;
+		updateProgressBar();
+		if (page === 1) { $('#flipbook').addClass('first-page'); }
+		else { $('#flipbook').removeClass('first-page'); }
+		resizeFlipbook();
+	  });
+	}
 
-  function showLoading() {
-    document.getElementById('loading-screen').style.display = 'flex';
-    document.getElementById('app-content').style.display = 'none';
-  }
-  function hideLoading() {
-    document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('app-content').style.display = 'block';
-  }
-  function loadData() {
-    return new Promise(resolve => { setTimeout(resolve, 500); });
-  }
-  function initializeApp() {
-    showLoading();
-    loadData().then(() => {
-      hideLoading();
-      showPDF();
-    });
-  }
+	function updateProgressBar() {
+	  let current = __CURRENT_PAGE;
+	  let val = (current / __TOTAL_PAGES) * 100;
+	  document.getElementById('reading-progress').value = val;
+	  document.getElementById('pdf-current-page').textContent = __CURRENT_PAGE;
+	}
 
-  $(document).ready(() => {
-    $(window).resize(() => {
-      resizeFlipbook();
-      updateProgressBar();
-    });
-    $('#flipbook').bind('turned', () => {
-      updateProgressBar();
-      resizeFlipbook();
-    });
-  });
-  window.addEventListener('load', initializeApp);
+	// 左右翻頁按鈕
+	$('#pdf-prev').on('click', () => { $('#flipbook').turn('previous'); });
+	$('#pdf-next').on('click', () => { $('#flipbook').turn('next'); });
+
+	function showLoading() {
+	  document.getElementById('loading-screen').style.display = 'flex';
+	  document.getElementById('app-content').style.display = 'none';
+	}
+	function hideLoading() {
+	  document.getElementById('loading-screen').style.display = 'none';
+	  document.getElementById('app-content').style.display = 'block';
+	}
+	function loadData() {
+	  return new Promise(resolve => { setTimeout(resolve, 500); });
+	}
+	function initializeApp() {
+	  showLoading();
+	  loadData().then(() => {
+		hideLoading();
+		showPDF();
+	  });
+	}
+
+	$(document).ready(() => {
+	  $(window).resize(() => {
+		resizeFlipbook();
+		updateProgressBar();
+	  });
+	  $('#flipbook').bind('turned', () => {
+		updateProgressBar();
+		resizeFlipbook();
+	  });
+	});
+	window.addEventListener('load', initializeApp);
 </script>
 </body>
 </html>
