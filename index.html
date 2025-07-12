@@ -10,13 +10,59 @@
     .progress-bar { width: 80%; max-width: 1200px; margin: 0 auto 10px; text-align: center; }
     .progress-bar progress { width: 100%; height: 10px; }
     #page-number-display { font-size: 18px; margin-top: 5px; color: #ffffff; }
-    #flipbook-container { position: relative; display: block; margin: 0 auto; }
+    #flipbook-container {
+	  position: relative;
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  margin: 0 auto;
+	}
     #flipbook { background-color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
-    .arrow-button { position: absolute; top: 50%; transform: translateY(-50%); padding: 10px; font-size: 24px; background-color: #3a7ce6; color: white; border: none; border-radius: 50%; cursor: pointer; transition: background-color 0.3s; z-index: 1000; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center;}
+    .arrow-button {
+	  position: absolute;
+	  top: 50%;
+	  transform: translateY(-50%);
+	  padding: 10px;
+	  font-size: 24px;
+	  background-color: #3a7ce6;
+	  color: white;
+	  border: none;
+	  border-radius: 50%;
+	  cursor: pointer;
+	  transition: background-color 0.3s;
+	  z-index: 1000;
+	  width: 50px;
+	  height: 50px;
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	}
     .arrow-button:hover { background-color: #2958a3; }
-    #pdf-prev { left: 10px; }
-    #pdf-next { right: 10px; }
-    @media (max-width: 768px) { .arrow-button { width: 40px; height: 40px; font-size: 18px; padding: 5px; } }
+	#pdf-prev {
+	  left: 0;   /* 一定貼齊左邊 */
+	}
+	#pdf-next {
+	  right: 0;  /* 一定貼齊右邊 */
+	}
+    @media (max-width: 900px) {
+	  .arrow-button {
+		width: 38px;
+		height: 38px;
+		font-size: 18px;
+		padding: 3px;
+	  }
+	}
+	@media (max-width: 600px) {
+	  #flipbook-container {
+		padding: 0 5vw;
+	  }
+	  .arrow-button {
+		width: 30px;
+		height: 30px;
+		font-size: 14px;
+		padding: 2px;
+	  }
+	}
     .page { position: relative; z-index: 1; }
     #flipbook.first-page .page-left { display: none !important; }
     #flipbook.first-page .page-right { margin-left: 0 !important; display: block !important; }
