@@ -90,8 +90,8 @@
   </style>
   <!-- jQuery CDN -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <!-- turn.js 4.0.1（穩定版） -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.0.1/turn.min.js"></script>
+  <!-- turn.js 3.x（正確版本） -->
+  <script src="https://cdn.jsdelivr.net/gh/blasten/turn.js@3/turn.min.js"></script>
   <!-- pdf.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
@@ -151,7 +151,7 @@
       return Promise.all(promises);
     }
     function showPDF() {
-      let url = ./pdfs/${BOOK_FILENAME};
+      let url = `./pdfs/${BOOK_FILENAME}`;
       pdfjsLib.getDocument(url).promise.then(pdfDoc => {
         __PDF_DOC = pdfDoc;
         __TOTAL_PAGES = pdfDoc.numPages;
@@ -163,9 +163,9 @@
           $('#flipbook').empty();
           for (let i = 1; i <= __TOTAL_PAGES; i++) {
             $('#flipbook').append(
-              <div class="page" data-page="${i}">
+              `<div class="page" data-page="${i}">
                   <canvas id="canvas${i}"></canvas>
-               </div>
+               </div>`
             );
           }
           let [bookW, bookH] = getBookSize();
